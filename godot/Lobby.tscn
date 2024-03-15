@@ -1,25 +1,34 @@
-[gd_scene load_steps=5 format=3 uid="uid://ca6s1lcoasesf"]
+[gd_scene load_steps=6 format=3 uid="uid://ca6s1lcoasesf"]
 
 [ext_resource type="PackedScene" uid="uid://bbr1mb0olruwj" path="res://Player.tscn" id="1_d5bct"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_ugrmp"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_dsdsl"]
+size = Vector3(100, 1, 100)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ve62s"]
-albedo_color = Color(0.595923, 0.0980227, 0.0252599, 1)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3dmfp"]
+albedo_color = Color(0.396266, 0, 0.0293687, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_18d3l"]
-material = SubResource("StandardMaterial3D_ve62s")
-size = Vector3(100, 0.1, 100)
+[sub_resource type="BoxMesh" id="BoxMesh_f5eqi"]
+material = SubResource("StandardMaterial3D_3dmfp")
+size = Vector3(100, 1, 100)
+
+[sub_resource type="Environment" id="Environment_m0e7k"]
 
 [node name="Lobby" type="Node3D"]
 
 [node name="Ground" type="StaticBody3D" parent="."]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
-shape = SubResource("BoxShape3D_ugrmp")
+shape = SubResource("BoxShape3D_dsdsl")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
-mesh = SubResource("BoxMesh_18d3l")
+mesh = SubResource("BoxMesh_f5eqi")
 
 [node name="Player" parent="." instance=ExtResource("1_d5bct")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3463, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_m0e7k")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 100, 0)

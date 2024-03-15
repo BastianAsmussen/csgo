@@ -1,8 +1,20 @@
-[gd_scene load_steps=2 format=3 uid="uid://bbr1mb0olruwj"]
+[gd_scene load_steps=4 format=3 uid="uid://bbr1mb0olruwj"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6ry0w"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3udvs"]
+albedo_color = Color(0.15182, 0.31271, 0.769145, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_ibymg"]
+material = SubResource("StandardMaterial3D_3udvs")
+
 [node name="Player" type="Player"]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="BodyCollider" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_6ry0w")
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_ibymg")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, -0.25)
