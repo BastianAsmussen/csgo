@@ -1,6 +1,7 @@
 use godot::prelude::*;
 
 mod player;
+mod weapon;
 
 struct Client;
 

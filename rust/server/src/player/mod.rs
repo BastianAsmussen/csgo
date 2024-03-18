@@ -49,7 +49,7 @@ impl Player {
                 continue;
             }
 
-            other.socket().write_all(json.as_bytes()).await?;
+            // other.socket().write_all(json.as_bytes()).await?;
         }
 
         Ok(())

@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://cyawgleu1spn7"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ejdc7"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6b74x"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_yl6gj"]
+material = SubResource("StandardMaterial3D_6b74x")
+
+[node name="Ak47" type="Weapon" node_paths=PackedStringArray("fire_rate", "reload_time")]
+fire_rate = NodePath("Fire Rate")
+max_ammo = 10
+current_ammo = 10
+reload_time = NodePath("Reload")
+
+[node name="Collider" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_ejdc7")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_yl6gj")
+
+[node name="Fire Rate" type="Timer" parent="."]
+wait_time = 0.1
+one_shot = true
+
+[node name="Reload" type="Timer" parent="."]
+wait_time = 3.0
+one_shot = true

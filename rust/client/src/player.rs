@@ -1,9 +1,11 @@
 use godot::engine::{CharacterBody3D, ICharacterBody3D};
 use godot::prelude::*;
 
+use crate::weapon::Weapon;
+
 #[derive(GodotClass)]
 #[class(base = CharacterBody3D)]
-struct Player {
+pub struct Player {
     #[export]
     gravity: f32,
 
@@ -11,6 +13,9 @@ struct Player {
     run_speed: f32,
     #[export]
     jump_force: f32,
+
+    #[export]
+    weapon: Option<Gd<Weapon>>,
 
     base: Base<CharacterBody3D>,
 }
@@ -48,6 +53,12 @@ impl Player {
             velocity.y = self.jump_force;
         }
 
+        if is_action_pressed("fire_weapon") {
+            if let Some(weapon) = &mut self.weapon {
+                weapon.bind_mut().fire();
+            }
+        }
+
         velocity
     }
 }
@@ -60,6 +71,8 @@ impl ICharacterBody3D for Player {
 
             run_speed: Self::RUN_SPEED,
             jump_force: Self::JUMP_FORCE,
+
+            weapon: None,
 
             base,
         }
