@@ -1,26 +1,28 @@
-[gd_scene load_steps=4 format=3 uid="uid://cyawgleu1spn7"]
+[gd_scene load_steps=3 format=3 uid="uid://cyawgleu1spn7"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_ejdc7"]
+[ext_resource type="ArrayMesh" uid="uid://bs8kmrfug6spi" path="res://Weapons/Ak47.obj" id="1_tpj4w"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6b74x"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_yl6gj"]
-material = SubResource("StandardMaterial3D_6b74x")
+[sub_resource type="BoxShape3D" id="BoxShape3D_1e5uu"]
 
 [node name="Ak47" type="Weapon" node_paths=PackedStringArray("fire_rate", "reload_time")]
+damage = 25.0
+range = 100.0
 fire_rate = NodePath("Fire Rate")
-max_ammo = 10
-current_ammo = 10
+max_ammo = 31
+current_ammo = 31
 reload_time = NodePath("Reload")
 
 [node name="Collider" type="CollisionShape3D" parent="."]
-shape = SubResource("BoxShape3D_ejdc7")
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, 0, 0, 0)
+shape = SubResource("BoxShape3D_1e5uu")
+disabled = true
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
-mesh = SubResource("BoxMesh_yl6gj")
+transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0, 0)
+mesh = ExtResource("1_tpj4w")
 
 [node name="Fire Rate" type="Timer" parent="."]
-wait_time = 0.1
+wait_time = 0.05
 one_shot = true
 
 [node name="Reload" type="Timer" parent="."]
