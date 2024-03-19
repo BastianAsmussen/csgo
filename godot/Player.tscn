@@ -1,6 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://bbr1mb0olruwj"]
-
-[ext_resource type="PackedScene" uid="uid://cyawgleu1spn7" path="res://Weapons/Ak47.tscn" id="1_2vxcu"]
+[gd_scene load_steps=4 format=3 uid="uid://bbr1mb0olruwj"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6ry0w"]
 
@@ -10,8 +8,7 @@ albedo_color = Color(0.15182, 0.31271, 0.769145, 1)
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_ibymg"]
 material = SubResource("StandardMaterial3D_3udvs")
 
-[node name="Player" type="Player" node_paths=PackedStringArray("weapon")]
-weapon = NodePath("Ak47")
+[node name="Player" type="Player"]
 
 [node name="BodyCollider" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_6ry0w")
@@ -20,8 +17,5 @@ shape = SubResource("CapsuleShape3D_6ry0w")
 mesh = SubResource("CapsuleMesh_ibymg")
 
 [node name="Camera" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, -0.25)
-
-[node name="Ak47" parent="." instance=ExtResource("1_2vxcu")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.21506, 0, -0.5)
-gravity_scale = 0.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0.25)
+fov = 90.0

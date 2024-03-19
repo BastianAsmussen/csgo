@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://ca6s1lcoasesf"]
+[gd_scene load_steps=9 format=3 uid="uid://ca6s1lcoasesf"]
 
 [ext_resource type="PackedScene" uid="uid://bbr1mb0olruwj" path="res://Player.tscn" id="1_d5bct"]
+[ext_resource type="PackedScene" uid="uid://cyawgleu1spn7" path="res://Weapons/Ak47.tscn" id="2_echg7"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_dsdsl"]
 size = Vector3(100, 1, 100)
@@ -14,21 +15,61 @@ size = Vector3(100, 1, 100)
 
 [sub_resource type="Environment" id="Environment_m0e7k"]
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_jknhm"]
+size = Vector3(100, 100, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hoivi"]
+size = Vector3(100, 100, 1)
+
 [node name="Lobby" type="Node3D"]
 
 [node name="Ground" type="StaticBody3D" parent="."]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+[node name="Collider" type="CollisionShape3D" parent="Ground"]
 shape = SubResource("BoxShape3D_dsdsl")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
 mesh = SubResource("BoxMesh_f5eqi")
 
-[node name="Player" parent="." instance=ExtResource("1_d5bct")]
+[node name="Player1" parent="." node_paths=PackedStringArray("weapon") instance=ExtResource("1_d5bct")]
+owner = "Client"
+weapon = NodePath("Ak47")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3463, 0)
+
+[node name="Ak47" parent="Player1" instance=ExtResource("2_echg7")]
+damage = 10000.0
+range = 1000.0
+max_ammo = 500
+current_ammo = 500
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.19108, 0, -0.688496)
+gravity_scale = 0.0
+
+[node name="Player2" parent="." instance=ExtResource("1_d5bct")]
+max_health = 100000.0
+health = 100000.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.46017, -45.5689)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_m0e7k")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 100, 0)
+
+[node name="Wall1" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 50)
+
+[node name="Collider" type="CollisionShape3D" parent="Wall1"]
+shape = SubResource("BoxShape3D_jknhm")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall1"]
+mesh = SubResource("BoxMesh_hoivi")
+
+[node name="Wall2" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
+
+[node name="Collider" type="CollisionShape3D" parent="Wall2"]
+shape = SubResource("BoxShape3D_jknhm")
+
+[node name="Mesh" type="MeshInstance3D" parent="Wall2"]
+mesh = SubResource("BoxMesh_hoivi")
+skeleton = NodePath("../../Wall2")

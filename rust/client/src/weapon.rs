@@ -3,7 +3,7 @@ use godot::prelude::*;
 
 use crate::player::Player;
 
-#[derive(GodotClass)]
+#[derive(Debug, GodotClass)]
 #[class(base = RigidBody3D)]
 pub struct Weapon {
     #[export]
@@ -41,10 +41,9 @@ impl Weapon {
     }
 
     #[func]
-    pub fn fire(&mut self) {
-        // -> Vec<Player> {
+    pub fn fire(&mut self) -> Option<Gd<Player>> {
         if self.is_reloading() || self.is_firing() {
-            return; // Vec::new();
+            return None;
         }
 
         self.take_ammo(1);
@@ -58,34 +57,41 @@ impl Weapon {
             self.reload();
         }
 
-        /*
-             * var space_state = get_world_3d().direct_space_state
-        var cam = $Camera3D
-        var mousepos = get_viewport().get_mouse_position()
+        let mut world = self.base().get_world_3d()?;
+        let mut space_state = world.get_direct_space_state()?;
 
-        var origin = cam.project_ray_origin(mousepos)
-        var end = origin + cam.project_ray_normal(mousepos) * RAY_LENGTH
-        var query = PhysicsRayQueryParameters3D.create(origin, end)
-        query.collide_with_areas = true
+        let cam = self.base().get_node_as::<Camera3D>("../Camera");
+        let mouse_pos = cam.get_viewport()?.get_mouse_position();
 
-        var result = space_state.intersect_ray(query)
+        let origin = cam.project_ray_origin(mouse_pos);
+        let end = origin + cam.project_ray_normal(mouse_pos) * self.range as f32;
 
-             */
-        let mut space_state = self
-            .base()
-            .get_world_3d()
-            .unwrap()
-            .get_direct_space_state()
-            .unwrap();
-        let cam = self.base().get_node_as::<Camera3D>("Camera3D");
-        let mousepos = self.base().get_viewport().unwrap().get_mouse_position();
-
-        let origin = cam.project_ray_normal(mousepos);
-        let end = origin + cam.project_ray_normal(mousepos) * self.range as f32;
-        let mut query = PhysicsRayQueryParameters3D::create(origin, end).unwrap();
+        let mut query = PhysicsRayQueryParameters3D::create(origin, end)?;
         query.set_collide_with_areas(true);
 
         let result = space_state.intersect_ray(query);
+
+        // Get the player that wes hit.
+        let mut player = result.get("collider")?.try_to::<Gd<Player>>().ok()?;
+        let distance = result
+            .get("position")?
+            .try_to::<Vector3>()
+            .ok()?
+            .distance_to(origin);
+
+        player
+            .bind_mut()
+            .damage(self.calculate_damage(distance as f64));
+
+        Some(player)
+    }
+
+    #[func]
+    pub fn calculate_damage(&self, distance: f64) -> f64 {
+        // Calculate damage fall-off.
+        let damage = self.damage * (1.0 - (distance / self.range));
+
+        damage
     }
 
     #[func]

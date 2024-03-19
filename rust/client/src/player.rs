@@ -3,16 +3,37 @@ use godot::prelude::*;
 
 use crate::weapon::Weapon;
 
-#[derive(GodotClass)]
-#[class(base = CharacterBody3D)]
+#[derive(Debug, PartialEq, GodotConvert, Var, Export)]
+#[godot(via = GString)]
+enum Owner {
+    Client,
+    Server,
+}
+
+#[derive(Debug, GodotClass)]
+#[class(init, base = CharacterBody3D)]
 pub struct Player {
     #[export]
-    gravity: f32,
+    #[init(default = Owner::Server)]
+    owner: Owner,
 
     #[export]
+    #[init(default = 9.8)]
+    gravity: f64,
+
+    #[export]
+    #[init(default = 10.0)]
     run_speed: f32,
     #[export]
+    #[init(default = 5.0)]
     jump_force: f32,
+
+    #[export]
+    #[init(default = 100.0)]
+    max_health: f64,
+    #[export]
+    #[init(default = 100.0)]
+    health: f64,
 
     #[export]
     weapon: Option<Gd<Weapon>>,
@@ -22,11 +43,6 @@ pub struct Player {
 
 #[godot_api]
 impl Player {
-    const GRAVITY: f32 = 9.8;
-
-    const RUN_SPEED: f32 = 10.0;
-    const JUMP_FORCE: f32 = 5.0;
-
     #[func]
     fn handle_input(&mut self) -> Vector3 {
         let mut velocity = self.base().get_velocity();
@@ -54,40 +70,42 @@ impl Player {
         }
 
         if is_action_pressed("fire_weapon") {
-            if let Some(weapon) = &mut self.weapon {
-                weapon.bind_mut().fire();
-            }
+            self.weapon.as_mut().map(|w| w.bind_mut().fire());
         }
 
         velocity
+    }
+
+    #[func]
+    pub fn damage(&mut self, damage: f64) {
+        self.health -= damage.min(self.health);
+
+        if self.health <= 0.0 {
+            self.health = self.max_health;
+            godot_print!("I'm dead!");
+
+            return;
+        }
+
+        let health_percentage = (self.health / self.max_health) * 100.0;
+        godot_print!("Ouch! I was hit for {damage:.2} damage! ({health_percentage:.2}%)");
     }
 }
 
 #[godot_api]
 impl ICharacterBody3D for Player {
-    fn init(base: Base<CharacterBody3D>) -> Self {
-        Self {
-            gravity: Self::GRAVITY,
-
-            run_speed: Self::RUN_SPEED,
-            jump_force: Self::JUMP_FORCE,
-
-            weapon: None,
-
-            base,
-        }
-    }
-
     fn physics_process(&mut self, delta: f64) {
         // Apply gravity.
         let mut velocity = self.base().get_velocity();
-        velocity.y -= self.gravity * delta as f32;
+        velocity.y -= (self.gravity * delta) as f32;
 
         self.base_mut().set_velocity(velocity);
 
         // Handle input and move the player.
-        let direction = self.handle_input();
-        self.base_mut().set_velocity(direction);
+        if self.owner == Owner::Client {
+            let direction = self.handle_input();
+            self.base_mut().set_velocity(direction);
+        }
 
         self.base_mut().move_and_slide();
     }
