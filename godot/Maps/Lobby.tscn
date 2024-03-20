@@ -6,11 +6,11 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_dsdsl"]
 size = Vector3(100, 1, 100)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3dmfp"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x6ubh"]
 albedo_color = Color(0.396266, 0, 0.0293687, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_f5eqi"]
-material = SubResource("StandardMaterial3D_3dmfp")
+material = SubResource("StandardMaterial3D_x6ubh")
 size = Vector3(100, 1, 100)
 
 [sub_resource type="Environment" id="Environment_m0e7k"]
@@ -34,10 +34,9 @@ mesh = SubResource("BoxMesh_f5eqi")
 [node name="Player1" parent="." node_paths=PackedStringArray("weapon") instance=ExtResource("1_d5bct")]
 owner = "Client"
 weapon = NodePath("Ak47")
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3463, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3463, -23.9028)
 
 [node name="Ak47" parent="Player1" instance=ExtResource("2_echg7")]
-falloff_end = 50.0
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.439884, 0, -0.688496)
 gravity_scale = 0.0
 

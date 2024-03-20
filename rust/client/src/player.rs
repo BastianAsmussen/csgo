@@ -14,6 +14,9 @@ enum Owner {
 #[class(init, base = CharacterBody3D)]
 pub struct Player {
     #[export]
+    name: GString,
+
+    #[export]
     #[init(default = Owner::Server)]
     owner: Owner,
 
@@ -43,6 +46,26 @@ pub struct Player {
 
 #[godot_api]
 impl Player {
+    #[func]
+    pub fn name(&self) -> String {
+        self.name.to_string()
+    }
+
+    #[func]
+    pub fn max_health(&self) -> f64 {
+        self.max_health
+    }
+
+    #[func]
+    pub fn health(&self) -> f64 {
+        self.health
+    }
+
+    #[func]
+    pub fn is_dead(&self) -> bool {
+        self.health <= 0.0
+    }
+
     #[func]
     fn handle_input(&mut self) -> Vector3 {
         let mut velocity = self.base().get_velocity();
@@ -80,14 +103,13 @@ impl Player {
     pub fn damage(&mut self, damage: f64) {
         self.health -= damage.min(self.health);
 
-        if self.health <= 0.0 {
-            self.health = self.max_health;
+        if self.is_dead() {
             godot_print!("I'm dead!");
 
             return;
         }
 
-        let health_percentage = (self.health / self.max_health) * 100.0;
+        let health_percentage = (self.health() / self.max_health()) * 100.0;
         godot_print!("Ouch! I was hit for {damage:.2} damage! ({health_percentage:.2}%)");
     }
 }

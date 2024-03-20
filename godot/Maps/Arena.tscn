@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3 uid="uid://c5dsxyacyialg"]
+
+[ext_resource type="PackedScene" uid="uid://bbr1mb0olruwj" path="res://Player.tscn" id="1_d5bct"]
+[ext_resource type="PackedScene" uid="uid://cyawgleu1spn7" path="res://Weapons/Ak47.tscn" id="2_echg7"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_h7wmg"]
+size = Vector3(100, 1, 100)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3dmfp"]
+albedo_color = Color(0.396266, 0, 0.0293687, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yai6b"]
+material = SubResource("StandardMaterial3D_3dmfp")
+size = Vector3(100, 1, 100)
+
+[node name="Arena" type="Map"]
+
+[node name="Player1" parent="." instance=ExtResource("1_d5bct")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 2, 0)
+
+[node name="Ak47" parent="Player1" instance=ExtResource("2_echg7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.439884, 0, -0.688496)
+gravity_scale = 0.0
+
+[node name="Player2" parent="." instance=ExtResource("1_d5bct")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.25, 2, 0)
+
+[node name="Ak47" parent="Player2" instance=ExtResource("2_echg7")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.439884, 0, -0.688496)
+gravity_scale = 0.0
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="Collider" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("BoxShape3D_h7wmg")
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("BoxMesh_yai6b")

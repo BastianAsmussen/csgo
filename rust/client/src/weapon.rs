@@ -1,7 +1,16 @@
-use godot::engine::{IRigidBody3D, PhysicsRayQueryParameters3D, RigidBody3D, Timer};
+use godot::engine::{
+    CollisionShape3D, IRigidBody3D, PhysicsRayQueryParameters3D, RigidBody3D, SphereShape3D, Timer,
+};
 use godot::prelude::*;
 
 use crate::player::Player;
+
+#[derive(Debug, PartialEq, GodotConvert, Var, Export)]
+#[godot(via = GString)]
+enum Headshot {
+    Kill,
+    DoubleDamage,
+}
 
 #[derive(Debug, GodotClass)]
 #[class(base = RigidBody3D)]
@@ -23,6 +32,10 @@ pub struct Weapon {
     max_ammo: u32,
     #[export]
     current_ammo: u32,
+
+    #[export]
+    on_headshot: Headshot,
+
     #[export]
     reload_time: Option<Gd<Timer>>,
 
@@ -77,16 +90,31 @@ impl Weapon {
         let result = space_state.intersect_ray(query);
 
         // Get the player that wes hit.
-        let mut player = result.get("collider")?.try_to::<Gd<Player>>().ok()?;
-        let distance = result
-            .get("position")?
-            .try_to::<Vector3>()
-            .ok()?
-            .distance_to(origin);
+        let collider = result.get("collider")?;
+        let position = result.get("position")?.try_to::<Vector3>().ok()?;
 
-        player
-            .bind_mut()
-            .damage(self.calculate_damage(distance as f64));
+        let mut player = collider.try_to::<Gd<Player>>().ok()?;
+        let distance = position.distance_to(origin);
+
+        // If the player's head was hit, deal max damage.
+        // Determine this by checking if the hit position is within the head collider.
+        let head = player.get_node_as::<CollisionShape3D>("HeadCollider");
+        godot_print!("Head: {head:?}");
+
+        let is_headshot = head
+            .cast::<SphereShape3D>()
+            .map_or(false, |s| s.is_point_inside(position));
+        godot_print!("Distance: {distance}, Headshot? {is_headshot}");
+
+        let mut damage = self.calculate_damage(distance as f64);
+        if is_headshot {
+            damage = match self.on_headshot {
+                Headshot::Kill => player.bind().max_health(),
+                Headshot::DoubleDamage => damage * 2.0,
+            };
+        }
+
+        player.bind_mut().damage(damage);
 
         Some(player)
     }
@@ -142,6 +170,8 @@ impl IRigidBody3D for Weapon {
 
             max_ammo: 0,
             current_ammo: 0,
+            on_headshot: Headshot::Kill,
+
             reload_time: None,
 
             base,

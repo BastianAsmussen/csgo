@@ -6,12 +6,13 @@
 
 [node name="Ak47" type="Weapon" node_paths=PackedStringArray("fire_rate", "reload_time")]
 max_damage = 25.0
-min_damage = 6.0
-falloff_start = 30.0
-falloff_end = 120.0
+min_damage = 10.0
+falloff_start = 40.0
+falloff_end = 300.0
 fire_rate = NodePath("Fire Rate")
-max_ammo = 31
-current_ammo = 31
+max_ammo = 999
+current_ammo = 999
+on_headshot = "DoubleDamage"
 reload_time = NodePath("Reload")
 
 [node name="Collider" type="CollisionShape3D" parent="."]

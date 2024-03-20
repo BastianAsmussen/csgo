@@ -1,4 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://bbr1mb0olruwj"]
+[gd_scene load_steps=7 format=3 uid="uid://bbr1mb0olruwj"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_p8ncl"]
+radius = 0.55
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bk5ke"]
+albedo_color = Color(0.808883, 0.0460803, 0.0258237, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_exbhm"]
+material = SubResource("StandardMaterial3D_bk5ke")
+radius = 0.55
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_6ry0w"]
 
@@ -10,11 +20,20 @@ material = SubResource("StandardMaterial3D_3udvs")
 
 [node name="Player" type="Player"]
 
+[node name="HeadCollider" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("SphereShape3D_p8ncl")
+
+[node name="HeadMesh" type="MeshInstance3D" parent="HeadCollider"]
+mesh = SubResource("SphereMesh_exbhm")
+skeleton = NodePath("../..")
+
 [node name="BodyCollider" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_6ry0w")
 
-[node name="BodyMesh" type="MeshInstance3D" parent="."]
+[node name="BodyMesh" type="MeshInstance3D" parent="BodyCollider"]
 mesh = SubResource("CapsuleMesh_ibymg")
+skeleton = NodePath("../..")
 
 [node name="Camera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0.25)
