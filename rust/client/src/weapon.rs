@@ -7,9 +7,14 @@ use crate::player::Player;
 #[class(base = RigidBody3D)]
 pub struct Weapon {
     #[export]
-    damage: f64,
+    max_damage: f64,
     #[export]
-    range: f64,
+    min_damage: f64,
+
+    #[export]
+    falloff_start: f64,
+    #[export]
+    falloff_end: f64,
 
     #[export]
     fire_rate: Option<Gd<Timer>>,
@@ -64,7 +69,7 @@ impl Weapon {
         let mouse_pos = cam.get_viewport()?.get_mouse_position();
 
         let origin = cam.project_ray_origin(mouse_pos);
-        let end = origin + cam.project_ray_normal(mouse_pos) * self.range as f32;
+        let end = origin + cam.project_ray_normal(mouse_pos) * self.falloff_end as f32;
 
         let mut query = PhysicsRayQueryParameters3D::create(origin, end)?;
         query.set_collide_with_areas(true);
@@ -88,10 +93,13 @@ impl Weapon {
 
     #[func]
     pub fn calculate_damage(&self, distance: f64) -> f64 {
-        // Calculate damage fall-off.
-        let damage = self.damage * (1.0 - (distance / self.range));
+        if distance <= self.falloff_start {
+            return self.max_damage;
+        }
 
-        damage
+        let n = (distance - self.falloff_start) / (self.falloff_end - self.falloff_start);
+
+        n * self.min_damage + (1.0 - n) * self.max_damage
     }
 
     #[func]
@@ -124,8 +132,11 @@ impl Weapon {
 impl IRigidBody3D for Weapon {
     fn init(base: Base<RigidBody3D>) -> Self {
         Self {
-            damage: 0.0,
-            range: 0.0,
+            max_damage: 0.0,
+            min_damage: 0.0,
+
+            falloff_start: 0.0,
+            falloff_end: 0.0,
 
             fire_rate: None,
 

@@ -5,8 +5,10 @@
 [sub_resource type="BoxShape3D" id="BoxShape3D_1e5uu"]
 
 [node name="Ak47" type="Weapon" node_paths=PackedStringArray("fire_rate", "reload_time")]
-damage = 25.0
-range = 100.0
+max_damage = 25.0
+min_damage = 6.0
+falloff_start = 30.0
+falloff_end = 120.0
 fire_rate = NodePath("Fire Rate")
 max_ammo = 31
 current_ammo = 31
