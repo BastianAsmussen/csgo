@@ -7,19 +7,21 @@ use crate::player::Player;
 
 #[derive(Debug, PartialEq, GodotConvert, Var, Export)]
 #[godot(via = GString)]
-enum Headshot {
+enum HeadshotAction {
     Kill,
     DoubleDamage,
 }
 
 #[derive(Debug, GodotClass)]
-#[class(base = RigidBody3D)]
+#[class(init, base = RigidBody3D)]
 pub struct Weapon {
     #[export]
     max_damage: f64,
     #[export]
     min_damage: f64,
 
+    #[export]
+    max_range: f64,
     #[export]
     falloff_start: f64,
     #[export]
@@ -34,7 +36,8 @@ pub struct Weapon {
     current_ammo: u32,
 
     #[export]
-    on_headshot: Headshot,
+    #[init(default = HeadshotAction::Kill)]
+    on_headshot: HeadshotAction,
 
     #[export]
     reload_time: Option<Gd<Timer>>,
@@ -67,14 +70,6 @@ impl Weapon {
         self.take_ammo(1);
         godot_print!("Bang! ({} ammo left)", self.current_ammo);
 
-        if let Some(timer) = &mut self.fire_rate {
-            timer.start();
-        };
-
-        if !self.has_ammo() {
-            self.reload();
-        }
-
         let mut world = self.base().get_world_3d()?;
         let mut space_state = world.get_direct_space_state()?;
 
@@ -82,7 +77,7 @@ impl Weapon {
         let mouse_pos = cam.get_viewport()?.get_mouse_position();
 
         let origin = cam.project_ray_origin(mouse_pos);
-        let end = origin + cam.project_ray_normal(mouse_pos) * self.falloff_end as f32;
+        let end = origin + cam.project_ray_normal(mouse_pos) * self.max_range as f32;
 
         let mut query = PhysicsRayQueryParameters3D::create(origin, end)?;
         query.set_collide_with_areas(true);
@@ -96,33 +91,48 @@ impl Weapon {
         let mut player = collider.try_to::<Gd<Player>>().ok()?;
         let distance = position.distance_to(origin);
 
-        // If the player's head was hit, deal max damage.
+        // If the player's head was hit, deal headshot damage.
         // Determine this by checking if the hit position is within the head collider.
-        let head = player.get_node_as::<CollisionShape3D>("HeadCollider");
-        godot_print!("Head: {head:?}");
+        let is_headshot = {
+            let collider = player.get_node_as::<CollisionShape3D>("HeadCollider");
+            let shape = collider.get_shape()?.cast::<SphereShape3D>();
 
-        let is_headshot = head
-            .cast::<SphereShape3D>()
-            .map_or(false, |s| s.is_point_inside(position));
-        godot_print!("Distance: {distance}, Headshot? {is_headshot}");
+            // Get the distance from the center of the head collider to the hit position.
+            let transform = collider.get_global_transform();
+            let distance = transform.origin.distance_to(position) - shape.get_radius();
+
+            // If it's within 0.1 units, we consider it a headshot.
+            distance <= 0.1
+        };
 
         let mut damage = self.calculate_damage(distance as f64);
         if is_headshot {
             damage = match self.on_headshot {
-                Headshot::Kill => player.bind().max_health(),
-                Headshot::DoubleDamage => damage * 2.0,
+                HeadshotAction::Kill => player.bind().max_health(),
+                HeadshotAction::DoubleDamage => damage * 2.0,
             };
         }
 
         player.bind_mut().damage(damage);
+
+        if let Some(timer) = &mut self.fire_rate {
+            timer.start();
+        };
+
+        if !self.has_ammo() {
+            self.reload();
+        }
 
         Some(player)
     }
 
     #[func]
     pub fn calculate_damage(&self, distance: f64) -> f64 {
+        // Control the damage falloff based on the distance.
         if distance <= self.falloff_start {
             return self.max_damage;
+        } else if distance >= self.falloff_end {
+            return self.min_damage;
         }
 
         let n = (distance - self.falloff_start) / (self.falloff_end - self.falloff_start);
@@ -158,23 +168,45 @@ impl Weapon {
 
 #[godot_api]
 impl IRigidBody3D for Weapon {
-    fn init(base: Base<RigidBody3D>) -> Self {
-        Self {
-            max_damage: 0.0,
-            min_damage: 0.0,
+    fn ready(&mut self) {
+        // Do some validation of the weapon's properties.
+        let mut errors = Vec::new();
 
-            falloff_start: 0.0,
-            falloff_end: 0.0,
+        if self.max_damage < 0.0 {
+            errors.push("max_damage must be greater than or equal to 0.0!");
+        }
 
-            fire_rate: None,
+        if self.min_damage > self.max_damage {
+            errors.push("max_damage must be greater than or equal to min_damage!");
+        }
 
-            max_ammo: 0,
-            current_ammo: 0,
-            on_headshot: Headshot::Kill,
+        if self.falloff_start < 0.0 {
+            errors.push("falloff_start must be greater than or equal to 0.0!");
+        }
 
-            reload_time: None,
+        if self.falloff_end < 0.0 {
+            errors.push("falloff_end must be greater than or equal to 0.0!");
+        }
 
-            base,
+        if self.falloff_start > self.falloff_end {
+            errors.push("falloff_start must be less than or equal to falloff_end!");
+        }
+
+        if self.max_range < self.falloff_end {
+            errors.push("max_range must be greater than or equal to falloff_end!");
+        }
+
+        if self.current_ammo > self.max_ammo {
+            errors.push("current_ammo must be less than or equal to max_ammo!");
+        }
+
+        if errors.is_empty() {
+            return;
+        }
+
+        godot_print!("Weapon validation failed!");
+        for error in errors {
+            godot_error!("{error}");
         }
     }
 }

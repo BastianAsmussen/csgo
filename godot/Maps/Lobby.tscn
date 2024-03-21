@@ -34,14 +34,16 @@ mesh = SubResource("BoxMesh_f5eqi")
 [node name="Player1" parent="." node_paths=PackedStringArray("weapon") instance=ExtResource("1_d5bct")]
 owner = "Client"
 weapon = NodePath("Ak47")
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3463, -23.9028)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.70117, 3.3463, -36.7281)
 
 [node name="Ak47" parent="Player1" instance=ExtResource("2_echg7")]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0.439884, 0, -0.688496)
 gravity_scale = 0.0
 
 [node name="Player2" parent="." instance=ExtResource("1_d5bct")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.46017, -45.5689)
+max_health = 10000.0
+health = 10000.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.46017, -44.4718)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_m0e7k")
