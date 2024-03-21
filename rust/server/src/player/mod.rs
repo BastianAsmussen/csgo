@@ -42,15 +42,38 @@ impl Player {
         self.socket.as_ref().unwrap()
     }
 
-    pub async fn inform(&mut self, others: &[Self]) -> Result<(), Error> {
-        let json = serde_json::to_string(&self)?;
-        for other in others {
-            if other.id() == self.id() {
-                continue;
-            }
+    pub fn socket_mut(&mut self) -> &mut TcpStream {
+        self.socket.as_mut().unwrap()
+    }
 
-            // other.socket().write_all(json.as_bytes()).await?;
-        }
+    pub fn position(&self) -> &Position {
+        &self.position
+    }
+
+    pub fn state(&self) -> Result<String, Error> {
+        serde_json::to_string(self).map_err(Into::into)
+    }
+
+    pub async fn request(&mut self) -> Result<(), Error> {
+        // Ask the player for their new position.
+        self.socket_mut().write_all(b"GetState").await?;
+
+        let mut buffer = [0; 1024];
+        let size = self.socket_mut().read(&mut buffer).await?;
+
+        // Update the player state.
+        let state: Self = serde_json::from_slice(&buffer[..size])?;
+        *self = Self {
+            id: self.id,
+            socket: self.socket.take(),
+            ..state
+        };
+
+        Ok(())
+    }
+
+    pub async fn inform(&mut self, data: &[u8]) -> Result<(), Error> {
+        self.socket_mut().write_all(data).await?;
 
         Ok(())
     }

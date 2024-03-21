@@ -1,3 +1,5 @@
+use clap::Parser;
+
 use error::Error;
 
 use crate::player::Player;
@@ -9,12 +11,27 @@ mod error;
 mod player;
 mod server;
 
+/// A simple game server.
+#[derive(Debug, Parser)]
+#[command(version, about)]
+struct Args {
+    /// The number of players to wait for.
+    #[arg(short, long, default_value = "1")]
+    count: usize,
+
+    /// The port to listen on.
+    #[arg(short, long, default_value = "7512")]
+    port: u16,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let mut players = Vec::new();
+    let args = Args::parse();
 
-    let listener = TcpListener::bind("0.0.0.0:7512").await?;
-    while players.len() < 1 {
+    let mut players = Vec::with_capacity(args.count);
+
+    let listener = TcpListener::bind(format!("0.0.0.0:{}", args.port)).await?;
+    while players.len() < args.count {
         let (socket, _) = listener.accept().await?;
 
         let player = Player::new(players.len(), socket).await?;

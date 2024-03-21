@@ -3,6 +3,15 @@ use godot::prelude::*;
 
 use crate::weapon::Weapon;
 
+use std::io::{Read, Write};
+use std::net::TcpStream;
+
+use serde::ser::SerializeStruct;
+use serde::Serialize;
+
+use lazy_static::lazy_static;
+use std::sync::{Arc, Mutex};
+
 #[derive(Debug, PartialEq, GodotConvert, Var, Export)]
 #[godot(via = GString)]
 enum Owner {
@@ -45,7 +54,27 @@ pub struct Player {
     #[export]
     weapon: Option<Gd<Weapon>>,
 
+    socket: Option<TcpStream>,
+
     base: Base<CharacterBody3D>,
+}
+
+impl Serialize for Player {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("Player", 4)?;
+        state.serialize_field("name", &self.name.to_string())?;
+        state.serialize_field("health", &self.health)?;
+        state.serialize_field("max_health", &self.max_health)?;
+        state.serialize_field(
+            "position",
+            &self.base().get_global_transform().origin.to_string(),
+        )?;
+
+        state.end()
+    }
 }
 
 #[godot_api]
@@ -120,6 +149,65 @@ impl Player {
 
 #[godot_api]
 impl ICharacterBody3D for Player {
+    fn ready(&mut self) {
+        if self.owner == Owner::Server {
+            return;
+        }
+
+        let id = self.base().instance_id();
+        std::thread::spawn(|| {
+            let mut socket = TcpStream::connect("127.0.0.1:7512").unwrap();
+
+            loop {
+                let player = Player::from_instance_id(id);
+                let mut buffer = [0; 1024];
+                let data = match socket.read(&mut buffer) {
+                    Ok(0) => {
+                        // The server has disconnected.
+                        return;
+                    }
+                    Ok(n) => {
+                        let data = &buffer[..n];
+                        let data = String::from_utf8_lossy(data);
+
+                        data.to_string()
+                    }
+                    Err(e) => {
+                        godot_print!("Error reading from server: {e}");
+
+                        return;
+                    }
+                };
+
+                if data == "GetState" {
+                    godot_print!("Sending state to server...");
+
+                    let state = match serde_json::to_string(&player) {
+                        Ok(state) => state,
+                        Err(e) => {
+                            godot_print!("Error serializing state: {e}");
+
+                            return;
+                        }
+                    };
+
+                    godot_print!("State: {state}");
+
+                    match socket.write(state.as_bytes()) {
+                        Ok(_) => {}
+                        Err(e) => {
+                            godot_print!("Error writing to server: {e}");
+
+                            return;
+                        }
+                    }
+
+                    continue;
+                }
+            }
+        });
+    }
+
     fn physics_process(&mut self, delta: f64) {
         // Apply gravity.
         let mut velocity = self.base().get_velocity();
@@ -137,6 +225,10 @@ impl ICharacterBody3D for Player {
     }
 
     fn input(&mut self, event: Gd<InputEvent>) {
+        if self.owner == Owner::Server {
+            return;
+        }
+
         if let Ok(event) = event.try_cast::<InputEventMouseMotion>() {
             /*
              $Camera.rotate_y(deg2rad(-event.relative.x*mouse_sens))
