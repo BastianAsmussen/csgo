@@ -1,4 +1,4 @@
-use godot::engine::{CharacterBody3D, ICharacterBody3D};
+use godot::engine::{CharacterBody3D, ICharacterBody3D, InputEvent, InputEventMouseMotion};
 use godot::prelude::*;
 
 use crate::weapon::Weapon;
@@ -30,6 +30,10 @@ pub struct Player {
     #[export]
     #[init(default = 5.0)]
     jump_force: f32,
+
+    #[export]
+    #[init(default = 3.0)]
+    mouse_sensitivty: f32,
 
     #[export]
     #[init(default = 100.0)]
@@ -130,5 +134,24 @@ impl ICharacterBody3D for Player {
         }
 
         self.base_mut().move_and_slide();
+    }
+
+    fn input(&mut self, event: Gd<InputEvent>) {
+        if let Ok(event) = event.try_cast::<InputEventMouseMotion>() {
+            /*
+             $Camera.rotate_y(deg2rad(-event.relative.x*mouse_sens))
+             var changev=-event.relative.y*mouse_sens
+             if camera_anglev+changev>-50 and camera_anglev+changev<50:
+                camera_anglev+=changev
+                $Camera.rotate_x(deg2rad(changev))
+            */
+            let y_change = (-event.get_relative().x * self.mouse_sensitivty).clamp(-90.0, 90.0);
+            let x_change = -event.get_relative().y * self.mouse_sensitivty;
+
+            let rotation = self.base().get_rotation_degrees();
+            let rotation = Vector3::new(rotation.x + x_change, rotation.y + y_change, rotation.z);
+
+            self.base_mut().set_rotation_degrees(rotation);
+        }
     }
 }
