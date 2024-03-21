@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://cb68d5x1iteld"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_62pwt"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_vtl4w"]
+
+[node name="BasicHelmet" type="Armor"]
+damage_mitigation = 0.1
+max_durability = 10.0
+current_durability = 10.0
+ricochet_chance = 0.01
+gravity_scale = 0.0
+
+[node name="Collider" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_62pwt")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_vtl4w")

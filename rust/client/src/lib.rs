@@ -1,5 +1,6 @@
 use godot::prelude::*;
 
+mod armor;
 mod map;
 mod player;
 mod weapon;
