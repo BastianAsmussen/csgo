@@ -3,7 +3,7 @@ use godot::engine::{
 };
 use godot::prelude::*;
 
-use crate::player::Player;
+use crate::players::player::Player;
 
 #[derive(Debug, PartialEq, GodotConvert, Var, Export)]
 #[godot(via = GString)]
@@ -74,10 +74,10 @@ impl Weapon {
         let mut space_state = world.get_direct_space_state()?;
 
         let cam = self.base().get_node_as::<Camera3D>("../Camera");
-        let mouse_pos = cam.get_viewport()?.get_mouse_position();
+        let center = cam.get_viewport()?.get_visible_rect().center();
 
-        let origin = cam.project_ray_origin(mouse_pos);
-        let end = origin + cam.project_ray_normal(mouse_pos) * self.max_range as f32;
+        let origin = cam.project_ray_origin(center);
+        let end = origin + cam.project_ray_normal(center) * self.max_range as f32;
 
         let mut query = PhysicsRayQueryParameters3D::create(origin, end)?;
         query.set_collide_with_areas(true);

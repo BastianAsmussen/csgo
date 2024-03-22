@@ -2,7 +2,7 @@ use godot::prelude::*;
 
 mod armor;
 mod map;
-mod player;
+mod players;
 mod weapon;
 
 struct Client;

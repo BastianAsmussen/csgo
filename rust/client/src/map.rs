@@ -1,6 +1,6 @@
 use godot::prelude::*;
 
-use crate::player::Player;
+use crate::players::player::Player;
 
 #[derive(Debug, GodotClass)]
 #[class(base = Node3D)]
